@@ -182,3 +182,37 @@ class IronicDriverFieldsTestCase(test.NoDBTestCase):
                 self.instance, self.image_meta, self.flavor,
                 boot_from_volume=True)
         self.assertPatchEqual(expected, patch)
+
+
+    def test_generic_get_deploy_patch_image_meta_traits_required(self):
+        node = ironic_utils.get_test_node(driver='fake')
+        self.image_meta.properties = objects.ImageMetaProps(traits_required = ['CUSTOM_TRUSTED'])
+        expected = [{'path': '/instance_info/traits',
+                     'value': ["CUSTOM_TRUSTED"],
+                     'op': 'add'}]
+        expected += self._expected_deploy_patch
+        patch = patcher.create(node).get_deploy_patch(
+                self.instance, self.image_meta, self.flavor)
+        self.assertPatchEqual(expected, patch)
+
+
+
+    def test_generic_get_deploy_patch_image_meta_traits_flavor_traits_required_combo(self):
+        node = ironic_utils.get_test_node(driver='fake')
+        self.flavor['extra_specs']['trait:CUSTOM_FOO'] = 'required'
+        self.image_meta.properties = objects.ImageMetaProps(traits_required=['CUSTOM_TRUSTED'])
+        expected = [{'path': '/instance_info/traits',
+                     'value': ["CUSTOM_FOO","CUSTOM_TRUSTED"],
+                     'op': 'add'}]
+        expected += self._expected_deploy_patch
+        patch = patcher.create(node).get_deploy_patch(
+            self.instance, self.image_meta, self.flavor)
+        self.assertPatchEqual(expected, patch)
+
+    def test_generic_get_deploy_patch_image_meta_properties_empty(self):
+        node = ironic_utils.get_test_node(driver='fake')
+        self.image_meta.properties = objects.ImageMetaProps()
+        expected = self._expected_deploy_patch
+        patch = patcher.create(node).get_deploy_patch(
+        self.instance, self.image_meta, self.flavor)
+        self.assertPatchEqual(expected, patch)

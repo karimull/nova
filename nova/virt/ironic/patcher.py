@@ -88,6 +88,7 @@ class GenericDriverFields(object):
 
         # read the flavor and get the extra_specs value.
         extra_specs = flavor.get('extra_specs')
+        image_traits = image_meta.properties.get('traits_required')
 
         # scan through the extra_specs values and ignore the keys
         # not starting with keyword 'capabilities' and 'trait'
@@ -110,6 +111,10 @@ class GenericDriverFields(object):
                     # to filter out traits not supported by the node.
                     if val == 'required':
                         traits.append(parsed_key)
+        if image_traits:
+            for key_val in image_traits:
+                    traits.append(key_val)
+
 
         if capabilities:
             patch.append({'path': '/instance_info/capabilities',
